@@ -130,6 +130,7 @@ async function main() {
     data: {
       userId: user1.id,
       slotId: testSlot.id,
+      customerName: user1.name,
       adultTickets: 2,
       childTickets: 1,
       infantTickets: 0,
