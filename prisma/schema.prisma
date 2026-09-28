@@ -1,0 +1,111 @@
+// Prisma schema для системы бронирования фермы альпак ЛуЛу
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Модель пользователя (клиента)
+model User {
+  id              String    @id @default(uuid())
+  name            String
+  phone           String
+  email           String    @unique
+  amocrmContactId Int?
+  bookings        Booking[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([email])
+  @@index([phone])
+}
+
+// Модель тарифа
+model Tariff {
+  id          String            @id @default(uuid())
+  name        String
+  adultPrice  Decimal
+  childPrice  Decimal
+  infantPrice Decimal           @default(0)
+  description String?
+  isActive    Boolean           @default(true)
+  slots       Slot[]
+  schedules   TariffSchedule[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([isActive])
+}
+
+// Модель слота для бронирования
+model Slot {
+  id                String      @id @default(uuid())
+  date              DateTime
+  time              String
+  totalCapacity     Int
+  availableCapacity Int
+  tariffId          String
+  tariff            Tariff      @relation(fields: [tariffId], references: [id], onDelete: Cascade)
+  status            String      @default("ACTIVE")
+  bookings          Booking[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([tariffId])
+}
+
+// SlotStatus values: ACTIVE, BLOCKED, FULL
+
+// Модель бронирования
+model Booking {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slotId        String
+  slot          Slot          @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  customerName  String        // Имя клиента на момент создания заявки
+  adultTickets  Int           @default(0)
+  childTickets  Int           @default(0)
+  infantTickets Int           @default(0)
+  totalAmount   Decimal
+  status        String        @default("PENDING")
+  paymentLink   String?
+  paymentId     String?
+  amocrmDealId  Int?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  confirmedAt   DateTime?
+  paidAt        DateTime?
+
+  @@index([userId])
+  @@index([slotId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// BookingStatus values: PENDING, CONFIRMED, PAID, CANCELLED
+
+// Модель расписания тарифов
+model TariffSchedule {
+  id           String     @id @default(uuid())
+  tariffId     String
+  tariff       Tariff     @relation(fields: [tariffId], references: [id], onDelete: Cascade)
+  dayOfWeek    String?
+  specificDate DateTime?
+  timeFrom     String?
+  timeTo       String?
+  priority     Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  @@index([tariffId])
+  @@index([dayOfWeek])
+  @@index([specificDate])
+}
+
+// DayOfWeek values: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY

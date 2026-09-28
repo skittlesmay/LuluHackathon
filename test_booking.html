@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Booking API</title>
+</head>
+<body>
+    <h1>Test API Slots</h1>
+    <div id="result"></div>
+    <script>
+        const today = new Date().toISOString().split('T')[0];
+        console.log('Fetching slots for:', today);
+        
+        fetch(`http://localhost:3000/api/slots?date_from=${today}&date_to=${today}`)
+            .then(r => r.json())
+            .then(data => {
+                console.log('Response:', data);
+                document.getElementById('result').innerHTML = 
+                    '<h2>Slots found: ' + data.slots.length + '</h2>' +
+                    '<pre>' + JSON.stringify(data.slots, null, 2) + '</pre>';
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                document.getElementById('result').innerHTML = 'Error: ' + err;
+            });
+    </script>
+</body>
+</html>
